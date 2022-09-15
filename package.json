@@ -1,0 +1,22 @@
+{
+  "name": "esp-hint-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Black221/esp-hint-api.git"
+  },
+  "keywords": [
+    "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"
+  ],
+  "author": "LHackSRT",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Black221/esp-hint-api/issues"
+  },
+  "homepage": "https://github.com/Black221/esp-hint-api#readme"
+}
