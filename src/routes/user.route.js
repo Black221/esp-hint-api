@@ -4,9 +4,9 @@ const router = express.Router();
 
 //Authentication
 const {
-    signUp,
-    signIn,
-    logout
+    register,
+    logout,
+    login
 } = require("../controllers/auth.controller");
 
 const {
@@ -17,8 +17,8 @@ const {
 } = require("../controllers/user.controller");
 
 
-router.post('/register', signUp);
-router.post('/login', signIn);
+router.post('/register', register);
+router.post('/login', login);
 router.post('/logout', logout);
 
 //User controller

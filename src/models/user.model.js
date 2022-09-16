@@ -1,7 +1,8 @@
+
+
 const mongoose = require('mongoose');
 const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
-const {Department} = require("./constants.model");
 const {Schema} = require("mongoose");
 
 const userSchema = new mongoose.Schema(
@@ -13,6 +14,9 @@ const userSchema = new mongoose.Schema(
             maxLength: 55,
             trim: true
         },
+        picture: {
+            type: String,
+        },
         studentId: {
             type: String,
             required: true,
@@ -21,7 +25,12 @@ const userSchema = new mongoose.Schema(
             trim: true
         },
         department: {
-            type: Schema.Types.ObjectId, ref: 'Department'
+            type: Schema.Types.ObjectId,
+            ref: 'Department'
+        },
+        option: {
+            type: Schema.Types.ObjectId,
+            ref: 'Option'
         },
         email: {
             type: String,
@@ -36,6 +45,14 @@ const userSchema = new mongoose.Schema(
             required: true,
             max: 1024,
             minlength: 8
+        },
+        token: {
+            type: String,
+            default: 'fake token'
+        },
+        admin: {
+            type: Boolean,
+            default: false
         }
     }
 );
@@ -47,17 +64,4 @@ userSchema.pre("save", async function (next)  {
     next();
 });
 
-userSchema.statics.login = async function (email, password) {
-    const user = await this.findOne({ email });
-    if (user) {
-        const auth = await bcrypt.compare(password, user.password);
-        if (auth) {
-            return user;
-        }
-        throw Error('incorrect email or password');
-    }
-    throw Error('incorrect email or password');
-};
-
-const UserModel = mongoose.model("User", userSchema);
-module.exports = UserModel;
+module.exports.UserModel= mongoose.model("User", userSchema);

@@ -10,17 +10,57 @@ const DepartmentSchema = new Schema(
             maxlength: 50,
             unique: true
         },
-        options: [{
-            name: {
-                type: String,
-                required: true,
-            },
-            matieres : [{
-                type: Schema.Types.ObjectId, ref: 'Matiere'
-            }]
-        }],
+        abv: {
+            type: String,
+            required: true,
+            maxlength: 50,
+            unique: true
+        },
+        formations: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Formation'
+        }]
     }
 );
+
+const FormationSchema = new Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            maxlength: 50,
+            unique: true
+        },
+        department: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Department'
+        }],
+        options: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Option'
+        }]
+    }
+);
+
+
+const OptionSchema = new Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+        },
+        abv: {
+            type: String,
+            required: true,
+            maxlength: 50,
+            unique: true
+        },
+        matieres : [{
+            type: Schema.Types.ObjectId,
+            ref: 'Matiere'
+        }]
+    }
+)
 
 const MatiereSchema = new Schema(
     {
@@ -28,13 +68,39 @@ const MatiereSchema = new Schema(
             type: String,
             required: true,
         },
-        files: [{
-            type: Schema.Types.ObjectId, ref: 'File'
-        }]
+        icon: {
+            type: String,
+        },
+        years: [{
+            number : {
+                type: Number,
+            },
+            semesters : [{
+                num : {
+                    type: Number,
+                },
+                files : [{
+                    type: Schema.Types.ObjectId,
+                    ref: 'File'
+                }],
+                default : [{num: 1, files:[]}, {num: 2, files:[]}]
+            }],
+        }],
+        department_options: {
+            department: {
+                type: Schema.Types.ObjectId,
+                ref: 'Department',
+            },
+            options: [{
+                type: Schema.Types.ObjectId,
+                ref: 'Option'
+            }],
+        },
     }
 );
 
 
-
-module.exports.Matiere = mongoose.model('Matiere', MatiereSchema);
-module.exports.Department =  mongoose.model('Department', DepartmentSchema);
+module.exports.MatiereModel = mongoose.model('Matiere', MatiereSchema);
+module.exports.OptionModel = mongoose.model('Option', OptionSchema)
+module.exports.FormationModel = mongoose.model('Formation', FormationSchema)
+module.exports.DepartmentModel =  mongoose.model('Department', DepartmentSchema);

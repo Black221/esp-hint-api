@@ -1,14 +1,95 @@
+const {UserModel} = require('../models/user.model');
 
+const {
+    loginValidation,
+    registerValidation
+} = require('../utils/validation.utils');
 
+const {
+    signUpErrors,
+    signInErrors
+} = require("../utils/error.utils");
 
-module.exports.logout = (res, req) => {
+const jwt = require('jsonwebtoken');
+const bcrypt = require("bcrypt");
 
+const MAX_AGE = 8 * 60 * 60 * 1000;
+const createToken = (user) => {
+    return jwt.sign(
+        { user : user._id, login: user.email, access: user.admin},
+        process.env.TOKEN_SECRET,
+        { expiresIn: "6h"},
+        undefined
+    )
 };
 
-module.exports.signIn = (res, req) => {
 
+
+module.exports.login = async (res, req) => {
+    const {error} = loginValidation(req.body);
+    console.log(req.body)
+    if (error)
+        return res.status(400).json(error.details[0].message);
+    try {
+        const user = await UserModel.findOne({ email: req.body.email});
+        if (!user)
+            return res.status(400).json('Login ou mot de passe invalide');
+        const validPass = await bcrypt.compare(req.body.password, user.password);
+        if (!validPass)
+            return res.status(400).json('Login ou mot de passe invalide');
+        const token = createToken(user);
+        await UserModel.findOneAndUpdate(
+            { login: req.body.login },
+            {
+                $set: { token: token }
+            }
+        );
+        res.status(200).setHeader('Authorization', `Bearer ${token}`).json({
+            userId: user._id,
+            status: user.admin,
+            token: token
+        });
+    } catch (err) {
+        res.status(400).json({err : err});
+    }
 };
 
-module.exports.signUp = (res, req) => {
+module.exports.register = async (res, req) => {
 
+    const {error} = registerValidation(req.body);
+    if (error)
+        return res.status(400).json(error.details[0].message);
+
+    const loginExist = await UserModel.findOne({ login: req.body.login});
+    if (loginExist)
+        return res.status(400).json('Login already exists');
+
+    const {name, email, password} = req.body;
+    try {
+        const user = await UserModel.create({
+            name,
+            email,
+            password
+        });
+        res.status(201).json({use: user._id});
+    } catch (err) {
+        const errors = signUpErrors(err);
+        res.status(200).json({errors});
+    }
+};
+
+module.exports.logout = async (req, res) => {
+    const token = req.user;
+    console.log(token);
+    try {
+        await UserModel.findByIdAndUpdate(
+            {_id: token.user},
+            {
+                $set: { token: 'fake token'}
+            }
+        );
+        res.status(200).setHeader('Authorization', '').json('disconnected');
+    } catch (err) {
+        res.status(500).json({error: err})
+    }
 };
