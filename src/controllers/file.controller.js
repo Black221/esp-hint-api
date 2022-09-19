@@ -1,6 +1,7 @@
 
 const { FileModel } = require('../models/file.model');
 const {ObjectId} = require("mongodb");
+const {MatiereModel} = require("../models/department.model");
 
 
 module.exports.getAllFiles  = async (req, res) => {
@@ -26,18 +27,60 @@ module.exports.getOneFile  = async (req, res) => {
     }
 }
 
-module.exports.addOneFile = (req, res) => {
+module.exports.addOneFile = async (req, res) => {
 
+    if (!ObjectId.isValid(req.params.id_matiere) &&
+        MatiereModel.exists({_id: req.params.id_matiere}))
+        return res.status(400).send('ID unknown');
+    const {date} = req.body;
+    try {
+        const file = new FileModel({
+            date,
+            size : req.file.size,
+            filepath: `${req.protocol}://${req.get('host')}/api/file/documents/${req.file.filename}`
+        });
+
+        const matiere = await MatiereModel.findOneAndUpdate(
+            {_id: req.params.id_matiere},
+            { $push : {
+                files : file._id
+            }}
+        )
+        res.status(200).json({file : file, matiere : matiere});
+    } catch (error) {
+        console.log(error)
+        res.status(400).json( { error })
+    }
 }
 
-module.exports.addManyFiles = (req, res) => {
+module.exports.updateFile  = async (req, res) => {
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send('ID unknown');
 
+    try {
+        const file = await FileModel.findByIdAndUpdate(
+            {_id: req.params.id},
+            {
+                $set: {
+                    date : req.body.date
+                }
+            }
+        );
+        res.status(200).json({file});
+    } catch (err) {
+        return res.status(500).json({ message: err });
+    }
 }
 
-module.exports.updateFile  = (req, res) => {
-
-}
-
-module.exports.deleteFile  = (req, res) => {
-
+module.exports.deleteFile  = async (req, res) => {
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send('ID unknown');
+    try {
+        await FileModel
+            .remove({_id: req.params.id})
+            .exec();
+        return res.status(200).json({message: "Successfully deleted"});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
 }

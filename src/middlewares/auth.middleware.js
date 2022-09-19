@@ -1,13 +1,11 @@
 const jwt = require('jsonwebtoken');
-const UserModel = require("../models/user.model");
 
-const config = process.env;
 
 module.exports.verifyToken = (req, res, next) => {
     const bearerToken = req.headers["authorization"];
 
     if (!bearerToken) {
-        return res.status(403).json("A token is required for authentication aa");
+        return res.status(403).json("A token is required for authentication");
     }
     const token = bearerToken.split(' ')[1];
     console.log(token)
@@ -49,9 +47,11 @@ module.exports.requireAuth = (req, res, next) => {
         jwt.verify(
             token, process.env.TOKEN_SECRET,'', async (err, decodedToken) => {
                 if (err) {
-                    console.log(err);
+                    res.status(401).send({message : "require auth"})
                 } else {
-                    console.log(decodedToken.user)
+                    req.auth = {
+                        user : decodedToken.user
+                    };
                     next();
                 }
             });

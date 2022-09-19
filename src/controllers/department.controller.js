@@ -5,19 +5,208 @@ const {
     MatiereModel,
     OptionModel,
     FormationModel
-} = require('../models/constants.model');
+} = require('../models/department.model');
 const { ObjectId } = require("mongodb");
 const {FileModel} = require("../models/file.model");
 const mongoose = require("mongoose");
 
 
-//Formation
+module.exports.getAllDepartment = async (req, res) => {
+    try {
+        const departments = await DepartmentModel
+            .find()
+            .populate('formations_options.formation')
+            .populate('formations_options.option')
+            .populate('formations_options.years.semesters.matieres')
 
+        return res.status(200).json({departments});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
+module.exports.getOneDepartment = async (req, res) => {
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send('ID unknown');
+    try {
+        const department = await DepartmentModel
+            .findById({_id: req.params.id})
+            .populate('formations_options.formation')
+            .populate('formations_options.option')
+            .populate('formations_options.years.semesters.matieres')
+        return res.status(200).json({department});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
+module.exports.addDepartment = async (req, res) => {
+    const {name, abv} = req.body;
+    try {
+        const department = await DepartmentModel.create({
+            name,
+            abv
+        });
+        res.status(201).json({department});
+    } catch (err) {
+        res.status(400).json({err});
+    }
+}
+
+module.exports.addDepartmentFormationOption = async (req, res) => {
+
+    if (!ObjectId.isValid(req.params.id_dep)
+        && !DepartmentModel.exists({_id: req.params.id_dep}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_formation)
+        && !FormationModel.exists({_id: req.params.id_formation}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_option)
+        && !FormationModel.exists({_id: req.params.id_option}))
+        return res.status(400).send('ID unknown');
+
+    if (await DepartmentModel.findOne({
+            _id: req.params.id_dep,
+            $and: [
+                    {'formations_options.formation': req.params.id_formation},
+                    {'formations_options.option': req.params.id_option}
+            ]
+    })) return res.status(400).send('Existe deja');
+
+    try {
+        const formation = await FormationModel.findById(req.params.id_formation);
+        let years = [];
+        for (let i = 0; i < formation.year; i++) {
+            years.push({number: i + 1});
+        }
+        const update = await DepartmentModel.findByIdAndUpdate(
+            {_id: req.params.id_dep},
+            {
+                $push: {
+                    formations_options: {
+                        option : req.params.id_option,
+                        formation : req.params.id_formation,
+                        years
+                    },
+                }
+
+            }  )
+        res.status(201).json({update});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
+module.exports.delDepartmentFormationOption = async (req, res) => {
+
+    if (!ObjectId.isValid(req.params.id_dep)
+        && !DepartmentModel.exists({_id: req.params.id_dep}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_formation)
+        && !FormationModel.exists({_id: req.params.id_formation}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_option)
+        && !FormationModel.exists({_id: req.params.id_option}))
+        return res.status(400).send('ID unknown');
+
+    try {
+        const update = await DepartmentModel.findByIdAndUpdate(
+            {_id: req.params.id_dep},
+            {
+                $pull: {
+                    formations_options: {
+                        option : req.params.id_option,
+                        formation : req.params.id_formation,
+                    },
+                }
+
+            }  )
+        res.status(201).json({update});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
+module.exports.addDepartmentFormationOptionMatiere = async (req, res) => {
+
+    if (!ObjectId.isValid(req.params.id_dep)
+        && !DepartmentModel.exists({_id: req.params.id_dep}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_formation)
+        && !FormationModel.exists({_id: req.params.id_formation}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_option)
+        && !OptionModel.exists({_id: req.params.id_option}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_matiere)
+        && !MatiereModel.exists({_id: req.params.id_matiere}))
+        return res.status(400).send('ID unknown');
+
+    if (await DepartmentModel.findOne({
+        _id: req.params.id_dep,
+        $and: [
+            {'formations_options.years.number': req.body.year},
+            {'formations_options.years.semesters.number': req.body.semester,},
+            {'formations_options.years.semesters.matieres': req.params.id_matiere},
+        ]
+    })) return res.status(400).send('Existe deja');
+
+
+    try {
+        const update = await DepartmentModel.findOneAndUpdate(
+            {
+                _id: req.params.id_dep,
+                $and: [
+                    {'formations_options.formation': req.params.id_formation},
+                    {'formations_options.option': req.params.id_option}
+                ]
+            },
+            {
+                $push: {
+                    'formations_options.$.years.$[year].semesters.$[semester].matieres': req.params.id_matiere,
+                }
+            },
+            {
+                arrayFilters: [
+                    {'year.number' : req.body.year},
+                    {'semester.number' : req.body.semester}
+                ]
+            }
+        )
+        res.status(201).json({update});
+    } catch (err) {
+        console.log(err)
+        return res.status(400).json({error: err});
+    }
+}
+
+
+module.exports.delDepartment = async (req, res) => {
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send('ID unknown');
+    try {
+        await DepartmentModel
+            .remove({_id: req.params.id})
+            .exec();
+        return res.status(200).json({message: "Successfully deleted"});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
+
+//Formation
 module.exports.getAllFormation = async (req, res) => {
     try {
         const formation = await FormationModel
             .find()
-            .populate('options')
         return res.status(200).json({formation});
     } catch (err) {
         return res.status(400).json({error: err});
@@ -30,7 +219,6 @@ module.exports.getOneFormation = async (req, res) => {
     try {
         const formation = await FormationModel
             .findById({_id: req.params.id})
-            .populate('options')
         return res.status(200).json({formation});
     } catch (err) {
         return res.status(400).json({error: err});
@@ -38,60 +226,32 @@ module.exports.getOneFormation = async (req, res) => {
 }
 
 module.exports.addFormation = async (req, res) => {
-    const {name} = req.body;
-    console.log(req.body)
+    const {name, abv} = req.body;
     try {
         const formation = await FormationModel.create({
             name,
+            abv
         });
         res.status(201).json({formation});
     } catch (err) {
-        console.log(err)
         res.status(400).json({err});
     }
 }
 
-module.exports.updateFormationAddDepartment = async (req, res) => {
-
+module.exports.updateFormation = async (req, res) => {
     if (!ObjectId.isValid(req.params.id_formation)
-        && !FormationModel.exists({_id: req.params.id_formation}))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(req.params.id_dep)
-        && !DepartmentModel.exists({_id: req.params.id_dep}))
+        && !FileModel.exists({_id: req.params.id_formation}))
         return res.status(400).send('ID unknown');
 
     try {
         const update = await FormationModel.findByIdAndUpdate(
-            {_id: req.params.id_formation},
             {
-                $push: {
-                    departments: req.params.id_dep
-                }
-            }
-        )
-        res.status(201).json({update});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
-module.exports.updateFormationAddOption = async (req, res) => {
-
-    if (!ObjectId.isValid(req.params.id_formation)
-        && !FormationModel.exists({_id: req.params.id_formation}))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(req.params.id_option)
-        && !OptionModel.exists({_id:req.params.id_option}))
-        return res.status(400).send('ID unknown');
-
-    try {
-        const update = await FormationModel.findByIdAndUpdate(
-            {_id: req.params.id_formation},
+                _id: req.params.id_formation,
+            },
             {
-                $push: {
-                    options: req.params.id_option
+                $set: {
+                    abv : req.body.abv,
+                    year : req.body.year
                 }
             }
         )
@@ -106,84 +266,6 @@ module.exports.delFormation = async (req, res) => {
         return res.status(400).send('ID unknown');
     try {
         await FormationModel
-            .remove({_id: req.params.id})
-            .exec();
-        return res.status(200).json({message: "Successfully deleted"});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
-
-module.exports.getAllDepartment = async (req, res) => {
-    try {
-        const departments = await DepartmentModel
-            .find()
-            .populate('formations.options')
-        return res.status(200).json({departments});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
-module.exports.getOneDepartment = async (req, res) => {
-    if (!ObjectId.isValid(req.params.id))
-        return res.status(400).send('ID unknown');
-    try {
-        const department = await DepartmentModel
-            .findById({_id: req.params.id})
-            .populate('options')
-        return res.status(200).json({department});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
-module.exports.addDepartment = async (req, res) => {
-    const {name, abv} = req.body;
-    console.log(req.body)
-    try {
-        const department = await DepartmentModel.create({
-            name,
-            abv
-        });
-        res.status(201).json({department});
-    } catch (err) {
-        console.log(err)
-        res.status(400).json({err});
-    }
-}
-
-module.exports.updateDepartment = async (req, res) => {
-
-    if (!ObjectId.isValid(req.params.id_dep)
-        && !DepartmentModel.exists({_id: req.params.id_dep}))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(req.params.id_formation)
-        && !FormationModel.exists({_id: req.params.id_formation}))
-        return res.status(400).send('ID unknown');
-
-    try {
-        const update = await DepartmentModel.findByIdAndUpdate(
-            {_id: req.params.id_formation},
-            {
-                $push: {
-                    formations: req.params.id_formation
-                }
-            }
-        )
-        res.status(201).json({update});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
-module.exports.delDepartment = async (req, res) => {
-    if (!ObjectId.isValid(req.params.id))
-        return res.status(400).send('ID unknown');
-    try {
-        await DepartmentModel
             .remove({_id: req.params.id})
             .exec();
         return res.status(200).json({message: "Successfully deleted"});
@@ -228,37 +310,11 @@ module.exports.addOption = async (req, res) => {
             name,
             abv
         });
-        res.status(201).json({option: option._id});
+        res.status(201).json({option});
     } catch (err) {
-        console.log(err)
         res.status(400).json({err});
     }
 }
-
-module.exports.updateOption = async (req, res) => {
-    if (!ObjectId.isValid(req.params.id_option)
-        && !OptionModel.exists({_id: req.params.id_option}))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(req.params.id_matiere)
-        && !MatiereModel.exists({_id: req.params.id_matiere}))
-        return res.status(400).send('ID unknown');
-
-    try {
-        const update = await OptionModel.findByIdAndUpdate(
-            {_id: req.params.id_option},
-            {
-                $push: {
-                    matieres: req.params.id_matiere
-                }
-            }
-        )
-        res.status(201).json({update});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
 
 module.exports.delOption = async (req, res) => {
     if (!ObjectId.isValid(req.params.id))
@@ -279,6 +335,7 @@ module.exports.getAllMatiere = async (req, res) => {
     try {
         const matieres = await MatiereModel
             .find()
+            .populate('files')
         return res.status(200).json({matieres});
     } catch (err) {
         return res.status(400).json({error: err});
@@ -291,6 +348,7 @@ module.exports.getOneMatiere = async (req, res) => {
     try {
         const matiere = await MatiereModel
             .findById({_id: req.params.id})
+            .populate('files')
         return res.status(200).json({matiere});
     } catch (err) {
         return res.status(400).json({error: err});
@@ -300,25 +358,45 @@ module.exports.getOneMatiere = async (req, res) => {
 module.exports.addMatiere = async (req, res) => {
     const {
         name,
-        icons,
-        department_options
+        icon,
     } = req.body;
-    console.log(req.body)
     try {
         const matiere = await MatiereModel.create({
             name,
-            icons,
-            department_options
+            icon,
         });
 
         res.status(201).json({matiere});
     } catch (err) {
-        console.log(err)
         res.status(400).json({err});
     }
 }
 
-module.exports.updateMatiereFile = async (req, res) => {
+
+module.exports.updateMatiere = async (req, res) => {
+    if (!ObjectId.isValid(req.params.id_formation)
+        && !MatiereModel.exists({_id: req.params.id_matiere}))
+        return res.status(400).send('ID unknown');
+
+    try {
+        const update = await MatiereModel.findByIdAndUpdate(
+            {
+                _id: req.params.id_matiere,
+            },
+            {
+                $set: {
+                    icon : req.body.icon,
+                }
+            }
+        )
+        res.status(201).json({update});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
+
+module.exports.addMatiereFile = async (req, res) => {
 
     if (!ObjectId.isValid(req.params.id_matiere)
         && !MatiereModel.exists({_id: req.params.id_matiere}))
@@ -332,36 +410,10 @@ module.exports.updateMatiereFile = async (req, res) => {
         const update = await MatiereModel.update(
             {
                 _id: req.params.id_matiere,
-                'years.number': req.body.year,
-                'semesters.num': req.body.semester
             },
             {
                 $push: {
-                    'years.$.semesters.$.files': req.params.id_file
-                }
-            }
-        )
-        res.status(201).json({update});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
-module.exports.updateMatiereOption = async (req, res) => {
-    if (!ObjectId.isValid(req.params.id_matiere)
-        && !MatiereModel.exists({_id: req.params.id_matiere}))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(req.params.id_option)
-        && !OptionModel.exists({_id: req.params.id_option}))
-        return res.status(400).send('ID unknown');
-
-    try {
-        const update = await MatiereModel.update(
-            {_id: req.params.id_matiere},
-            {
-                $push: {
-                    'department_options.options': req.params.id_option
+                    'files': req.params.id_file
                 }
             }
         )

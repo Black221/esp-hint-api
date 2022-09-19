@@ -19,7 +19,6 @@ const userSchema = new mongoose.Schema(
         },
         studentId: {
             type: String,
-            required: true,
             minLength: 2,
             maxLength: 55,
             trim: true
@@ -28,9 +27,16 @@ const userSchema = new mongoose.Schema(
             type: Schema.Types.ObjectId,
             ref: 'Department'
         },
+        formation : {
+            type: Schema.Types.ObjectId,
+            ref: 'Formation'
+        },
         option: {
             type: Schema.Types.ObjectId,
             ref: 'Option'
+        },
+        year: {
+
         },
         email: {
             type: String,

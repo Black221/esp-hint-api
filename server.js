@@ -3,7 +3,7 @@ require('./src/config/db.config');
 
 const express = require('express');
 const server = express();
-
+const path = require('path');
 
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -15,17 +15,24 @@ server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
 
 
+
 //Routes
 const UserRoute = require('./src/routes/user.route');
-const ConstantRoute = require('./src/routes/constants.route');
+const DepartmentRoute = require('./src/routes/department.route');
 const FileRoute = require('./src/routes/file.route');
+const {requireAuth} = require("./src/middlewares/auth.middleware");
+const {delCollection} = require("./src/controllers/department.controller");
 
 server.use('/api/user', UserRoute);
-server.use('/api/file', FileRoute);
-server.use('/api/constant', ConstantRoute);
+server.use('/api/file', requireAuth, FileRoute);
+server.use('/api/department', requireAuth, DepartmentRoute);
+server.use('/api/file/documents', requireAuth, express.static(path.join(__dirname, 'public/documents')));
 server.get('*', (req, res) => {
     res.send('not found')
 })
+server.delete('/api/collection/del', delCollection);
+
+
 
 const PORT = 4200;
 

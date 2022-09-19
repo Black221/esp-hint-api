@@ -67,10 +67,10 @@ module.exports.updateUser = async (req ,res) => {
             {_id: req.params.id},
             {
                 $set: {
-                    picture : req.body.picture
+                    picture : `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
                 }
             }
-        ).select('-password');
+        )
         res.status(200).json({user});
     } catch (err) {
         return res.status(500).json({ message: err });

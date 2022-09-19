@@ -16,10 +16,36 @@ const DepartmentSchema = new Schema(
             maxlength: 50,
             unique: true
         },
-        formations: [{
-            type: Schema.Types.ObjectId,
-            ref: 'Formation'
-        }]
+        formations_options : [{
+            formation: {
+                type: Schema.Types.ObjectId,
+                ref: 'Formation'
+            },
+            option: {
+                type: Schema.Types.ObjectId,
+                ref: 'Option'
+            },
+            years: [{
+                number : {
+                    type: Number,
+                },
+                semesters : {
+                    type :[{
+                        number: {
+                            type: Number,
+                        },
+                        matieres: [{
+                            type: Schema.Types.ObjectId,
+                            ref: 'Matiere'
+                        }]
+                    }],
+                    default : [
+                        {number: 1, matieres:[]},
+                        {number: 2, matieres:[]}
+                    ]
+                },
+            }],
+        }],
     }
 );
 
@@ -31,17 +57,17 @@ const FormationSchema = new Schema(
             maxlength: 50,
             unique: true
         },
-        department: [{
-            type: Schema.Types.ObjectId,
-            ref: 'Department'
-        }],
-        options: [{
-            type: Schema.Types.ObjectId,
-            ref: 'Option'
-        }]
+        abv : {
+            type: String,
+            required: true,
+            maxlength: 50,
+            unique: true
+        },
+        year : {
+            type : Number
+        }
     }
 );
-
 
 const OptionSchema = new Schema(
     {
@@ -55,10 +81,7 @@ const OptionSchema = new Schema(
             maxlength: 50,
             unique: true
         },
-        matieres : [{
-            type: Schema.Types.ObjectId,
-            ref: 'Matiere'
-        }]
+
     }
 )
 
@@ -71,31 +94,10 @@ const MatiereSchema = new Schema(
         icon: {
             type: String,
         },
-        years: [{
-            number : {
-                type: Number,
-            },
-            semesters : [{
-                num : {
-                    type: Number,
-                },
-                files : [{
-                    type: Schema.Types.ObjectId,
-                    ref: 'File'
-                }],
-                default : [{num: 1, files:[]}, {num: 2, files:[]}]
-            }],
+        files: [{
+            type: Schema.Types.ObjectId,
+            ref: 'File'
         }],
-        department_options: {
-            department: {
-                type: Schema.Types.ObjectId,
-                ref: 'Department',
-            },
-            options: [{
-                type: Schema.Types.ObjectId,
-                ref: 'Option'
-            }],
-        },
     }
 );
 

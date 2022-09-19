@@ -1,19 +1,19 @@
 const {UserModel} = require('../models/user.model');
 
 const {
-    loginValidation,
-    registerValidation
+    // loginValidation,
+    // registerValidation
 } = require('../utils/validation.utils');
 
 const {
     signUpErrors,
-    signInErrors
+    // signInErrors
 } = require("../utils/error.utils");
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
 
-const MAX_AGE = 8 * 60 * 60 * 1000;
+// const MAX_AGE = 8 * 60 * 60 * 1000;
 const createToken = (user) => {
     return jwt.sign(
         { user : user._id, login: user.email, access: user.admin},
@@ -25,11 +25,10 @@ const createToken = (user) => {
 
 
 
-module.exports.login = async (res, req) => {
-    const {error} = loginValidation(req.body);
-    console.log(req.body)
-    if (error)
-        return res.status(400).json(error.details[0].message);
+module.exports.login = async (req, res) => {
+    // const {error} = loginValidation(req.body);
+    // if (error)
+    //     return res.status(400).json(error.details[0].message);
     try {
         const user = await UserModel.findOne({ email: req.body.email});
         if (!user)
@@ -46,7 +45,7 @@ module.exports.login = async (res, req) => {
         );
         res.status(200).setHeader('Authorization', `Bearer ${token}`).json({
             userId: user._id,
-            status: user.admin,
+            admin: user.admin,
             token: token
         });
     } catch (err) {
@@ -54,22 +53,26 @@ module.exports.login = async (res, req) => {
     }
 };
 
-module.exports.register = async (res, req) => {
+module.exports.register = async (req, res) => {
 
-    const {error} = registerValidation(req.body);
-    if (error)
-        return res.status(400).json(error.details[0].message);
+    // const {error} = registerValidation(req.body);
+    // if (error)
+    //     return res.status(400).json(error.details[0].message);
 
-    const loginExist = await UserModel.findOne({ login: req.body.login});
-    if (loginExist)
-        return res.status(400).json('Login already exists');
+    const emailExist = await UserModel.findOne({ email: req.body.email});
+    if (emailExist)
+        return res.status(400).json('email already exists');
 
-    const {name, email, password} = req.body;
+    const {name, email, password, department, formation, option, year} = req.body;
     try {
         const user = await UserModel.create({
             name,
             email,
-            password
+            password,
+            department,
+            formation,
+            option,
+            year
         });
         res.status(201).json({use: user._id});
     } catch (err) {
@@ -80,7 +83,6 @@ module.exports.register = async (res, req) => {
 
 module.exports.logout = async (req, res) => {
     const token = req.user;
-    console.log(token);
     try {
         await UserModel.findByIdAndUpdate(
             {_id: token.user},

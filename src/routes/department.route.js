@@ -5,27 +5,27 @@ const router = express.Router();
 const {
     getAllDepartment,
     getOneDepartment,
-    updateDepartment,
+    addDepartmentFormationOption,
     delDepartment,
     addDepartment,
     getAllMatiere,
     getOneMatiere,
     addMatiere,
-    updateMatiere,
     delMatiere,
     getAllOption,
     delOption,
-    updateOption,
     addOption,
     getOneOption,
-    delCollection,
     getAllFormation,
     getOneFormation,
     addFormation,
     delFormation,
-    updateFormationAddDepartment,
-    UpdateFormationAddOption, updateFormationAddOption,
-} = require("../controllers/constants.controller");
+    addMatiereFile,
+    updateFormation,
+    delDepartmentFormationOption,
+    addDepartmentFormationOptionMatiere,
+    updateMatiere,
+} = require("../controllers/department.controller");
 
 
 router.get('/', (req, res) => {
@@ -34,27 +34,28 @@ router.get('/', (req, res) => {
 
 
 //Department
-router.get('/department/get/all', getAllDepartment);
-router.get('/department/get/:id', getOneDepartment);
-router.post('/department/add', addDepartment);
-router.put('/department/update/:id_dep/:id_formation/:id_option', updateDepartment);
-router.delete('/department/del/:id', delDepartment);
+router.get('/get/all', getAllDepartment);
+router.get('/get/:id', getOneDepartment);
+router.post('/add', addDepartment);
+router.put('/update/matiere/:id_dep/:id_formation/:id_option/:id_matiere', addDepartmentFormationOptionMatiere);
+router.put('/update/formation/:id_dep/:id_formation/:id_option', addDepartmentFormationOption);
+router.delete('/del/:id_dep/:id_formation/:id_option', delDepartmentFormationOption);
+router.delete('/del/:id', delDepartment);
 
 
-//Department
+//Formation
 router.get('/formation/get/all', getAllFormation);
 router.get('/formation/get/:id', getOneFormation);
 router.post('/formation/add', addFormation);
-router.put('/formation/update/dep/:id_formation/:id_dep', updateFormationAddDepartment);
-router.put('/formation/update/option/:id_formation/:id_option', updateFormationAddOption);
+
+router.put('/formation/update/:id_formation', updateFormation);
 router.delete('/formation/del/:id', delFormation);
 
 
-//Matiere
+//Option
 router.get('/option/get/all', getAllOption);
 router.get('/option/get/:id', getOneOption);
-router.post('/option/add/:id', addOption);
-router.put('/option/update/:id_option/:id_matiere', updateOption);
+router.post('/option/add/', addOption);
 router.delete('/option/del/:id', delOption);
 
 
@@ -62,10 +63,9 @@ router.delete('/option/del/:id', delOption);
 router.get('/matiere/get/all', getAllMatiere);
 router.get('/matiere/get/:id', getOneMatiere);
 router.post('/matiere/add', addMatiere);
-router.put('/matiere/update/:id_matiere/:id_file', updateMatiere);
+router.put('/matiere/update/file/:id_matiere/:id_file', addMatiereFile);
+router.put('/matiere/update/icon/:id_matiere', updateMatiere);
 router.delete('/matiere/del/:id', delMatiere);
-
-router.delete('/collection/del', delCollection);
 
 
 module.exports = router;
