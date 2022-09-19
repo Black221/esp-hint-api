@@ -7,10 +7,12 @@ module.exports.getUserInfo = async (req, res) => {
     if (!ObjectId.isValid(req.params.id))
         return res.status(400).send('ID unknown');
     try {
-        const staff = await UserModel
+        const user = await UserModel
             .findById({_id: req.params.id})
-            .select('-password');
-        return res.status(200).json({staff: staff});
+            .populate('formation')
+            .populate('option')
+            .select(['-password', '-admin', '-token']);
+        return res.status(200).json({user});
     } catch (err) {
         return res.status(400).json({error: err});
     }
@@ -77,6 +79,43 @@ module.exports.updateUser = async (req ,res) => {
     }
 };
 
+module.exports.updateUserFormation = async (req, res) => {
+
+    const {
+        department,
+        formation,
+        option
+    } = req.params;
+
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(department))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(formation))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(option))
+        return res.status(400).send('ID unknown');
+
+    try {
+        const user = await UserModel.findByIdAndUpdate(
+            {_id: req.params.id},
+            {
+                $set: {
+                    department,
+                    formation,
+                    option,
+                    year : req.body.year
+                }
+            }
+        )
+        res.status(200).json({user});
+    } catch (err) {
+        return res.status(500).json({ message: err });
+    }
+}
 
 module.exports.deleteUser = async (req, res) => {
     if (!ObjectId.isValid(req.params.id))
