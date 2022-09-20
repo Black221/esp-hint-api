@@ -34,10 +34,9 @@ server.delete('/api/collection/del', delCollection);
 
 
 
-const PORT = 4200;
 
 server.listen(
-    PORT,
+    process.env.PORT,
     (err) => {
         if (!err)
             console.log(`Hello world app listening on port ${PORT}!`);

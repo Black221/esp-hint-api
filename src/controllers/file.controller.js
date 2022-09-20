@@ -37,7 +37,7 @@ module.exports.addOneFile = async (req, res) => {
         const file = await FileModel.create({
             date,
             size : req.file.size,
-            filepath: `${req.protocol}://${req.get('host')}/api/file/documents/${req.file.filename}`
+            filepath: `${req.protocol}://${process.env.HOST}:${process.env.PORT}/api/file/documents/${req.file.filename}`
         });
 
         const matiere = await MatiereModel.findOneAndUpdate(
