@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
             ref: 'Option'
         },
         year: {
-
+            type: Number
         },
         email: {
             type: String,

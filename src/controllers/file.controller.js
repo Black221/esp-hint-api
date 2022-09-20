@@ -1,7 +1,7 @@
 
 const { FileModel } = require('../models/file.model');
 const {ObjectId} = require("mongodb");
-const {MatiereModel} = require("../models/department.model");
+const {MatiereModel, OptionModel} = require("../models/department.model");
 
 
 module.exports.getAllFiles  = async (req, res) => {
@@ -34,7 +34,7 @@ module.exports.addOneFile = async (req, res) => {
         return res.status(400).send('ID unknown');
     const {date} = req.body;
     try {
-        const file = new FileModel({
+        const file = await FileModel.create({
             date,
             size : req.file.size,
             filepath: `${req.protocol}://${req.get('host')}/api/file/documents/${req.file.filename}`
@@ -75,6 +75,7 @@ module.exports.updateFile  = async (req, res) => {
 module.exports.deleteFile  = async (req, res) => {
     if (!ObjectId.isValid(req.params.id))
         return res.status(400).send('ID unknown');
+
     try {
         await FileModel
             .remove({_id: req.params.id})

@@ -9,7 +9,6 @@ const {
     delDepartment,
     addDepartment,
     getAllMatiere,
-    getOneMatiere,
     addMatiere,
     delMatiere,
     getAllOption,
@@ -24,7 +23,7 @@ const {
     updateFormation,
     delDepartmentFormationOption,
     addDepartmentFormationOptionMatiere,
-    updateMatiere,
+    updateMatiere, delMatiereFile, getOneMatiere,
 } = require("../controllers/department.controller");
 
 
@@ -64,6 +63,7 @@ router.get('/matiere/get/all', getAllMatiere);
 router.get('/matiere/get/:id', getOneMatiere);
 router.post('/matiere/add', addMatiere);
 router.put('/matiere/update/file/:id_matiere/:id_file', addMatiereFile);
+router.put('/matiere/del/file/:id_matiere/:id_file', delMatiereFile);
 router.put('/matiere/update/icon/:id_matiere', updateMatiere);
 router.delete('/matiere/del/:id', delMatiere);
 

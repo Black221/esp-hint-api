@@ -17,6 +17,7 @@ module.exports.getAllDepartment = async (req, res) => {
             .find()
             .populate('formations_options.formation')
             .populate('formations_options.option')
+            .populate('formations_options.years.semesters.matieres.file')
             .populate('formations_options.years.semesters.matieres')
 
         return res.status(200).json({departments});
@@ -34,6 +35,7 @@ module.exports.getOneDepartment = async (req, res) => {
             .populate('formations_options.formation')
             .populate('formations_options.option')
             .populate('formations_options.years.semesters.matieres')
+            .populate('formations_options.years.semesters.matieres.files')
         return res.status(200).json({department});
     } catch (err) {
         return res.status(400).json({error: err});
@@ -331,25 +333,25 @@ module.exports.delOption = async (req, res) => {
 
 /*--------------------------------------------------------------------------------*/
 //Matiere
+module.exports.getOneMatiere = async (req, res) => {
+    if (!ObjectId.isValid(req.params.id))
+        return res.status(400).send('ID unknown');
+    try {
+        const matiere = await MatiereModel
+            .findById(req.params.id)
+            .populate('files')
+        return res.status(200).json({matiere});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
 module.exports.getAllMatiere = async (req, res) => {
     try {
         const matieres = await MatiereModel
             .find()
             .populate('files')
         return res.status(200).json({matieres});
-    } catch (err) {
-        return res.status(400).json({error: err});
-    }
-}
-
-module.exports.getOneMatiere = async (req, res) => {
-    if (!ObjectId.isValid(req.params.id))
-        return res.status(400).send('ID unknown');
-    try {
-        const matiere = await MatiereModel
-            .findById({_id: req.params.id})
-            .populate('files')
-        return res.status(200).json({matiere});
     } catch (err) {
         return res.status(400).json({error: err});
     }
@@ -413,6 +415,34 @@ module.exports.addMatiereFile = async (req, res) => {
             },
             {
                 $push: {
+                    'files': req.params.id_file
+                }
+            }
+        )
+        res.status(201).json({update});
+    } catch (err) {
+        return res.status(400).json({error: err});
+    }
+}
+
+
+module.exports.delMatiereFile = async (req, res) => {
+
+    if (!ObjectId.isValid(req.params.id_matiere)
+        && !MatiereModel.exists({_id: req.params.id_matiere}))
+        return res.status(400).send('ID unknown');
+
+    if (!ObjectId.isValid(req.params.id_file)
+        && !FileModel.exists({_id: req.params.id_file}))
+        return res.status(400).send('ID unknown');
+
+    try {
+        const update = await MatiereModel.update(
+            {
+                _id: req.params.id_matiere,
+            },
+            {
+                $pull: {
                     'files': req.params.id_file
                 }
             }

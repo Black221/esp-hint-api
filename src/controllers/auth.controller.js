@@ -43,12 +43,15 @@ module.exports.login = async (req, res) => {
                 $set: { token: token }
             }
         );
+        console.log("connexion etablie")
         res.status(200).setHeader('Authorization', `Bearer ${token}`).json({
             userId: user._id,
             admin: user.admin,
             token: token
         });
     } catch (err) {
+        console.log("connexion echoué")
+
         res.status(400).json({err : err});
     }
 };

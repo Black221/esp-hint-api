@@ -13,7 +13,7 @@ const {
     getAllUsers,
     getUserInfo,
     updateUser,
-    deleteUser
+    deleteUser, updateUserFormation, updateUserPassword
 } = require("../controllers/user.controller");
 const {requireAuth} = require("../middlewares/auth.middleware");
 const {pictureUpload} = require("../middlewares/file.middleware");
@@ -31,8 +31,8 @@ router.get('/get/all', requireAuth, getAllUsers);
 router.get('/get/:id', requireAuth, getUserInfo);
 
 //Update
-router.put('/update/formation/:id/:department/:formation/:option', requireAuth, updateUser);
-router.put('/update/password/:id', pictureUpload,requireAuth, updateUser);
+router.put('/update/formation/:id/:department/:formation/:option', requireAuth, updateUserFormation);
+router.put('/update/password/:id', pictureUpload,requireAuth, updateUserPassword);
 router.put('/update/picture/:id', requireAuth, updateUser);
 
 //Delete

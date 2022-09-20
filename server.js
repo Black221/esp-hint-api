@@ -20,13 +20,13 @@ server.use(bodyParser.json());
 const UserRoute = require('./src/routes/user.route');
 const DepartmentRoute = require('./src/routes/department.route');
 const FileRoute = require('./src/routes/file.route');
-const {requireAuth} = require("./src/middlewares/auth.middleware");
+const {requireAuth, verifyAuth} = require("./src/middlewares/auth.middleware");
 const {delCollection} = require("./src/controllers/department.controller");
 
 server.use('/api/user', UserRoute);
-server.use('/api/file', requireAuth, FileRoute);
+server.use('/api/file', verifyAuth, FileRoute);
 server.use('/api/department', requireAuth, DepartmentRoute);
-server.use('/api/file/documents', requireAuth, express.static(path.join(__dirname, 'public/documents')));
+server.use('/api/file/documents', verifyAuth, express.static(path.join(__dirname, 'public/documents')));
 server.get('*', (req, res) => {
     res.send('not found')
 })
