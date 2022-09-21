@@ -28,12 +28,12 @@ module.exports.fileUpload = multer({ storage: storageFile }).single('file');
 
 const storagePicture = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, )
+        callback(null, 'public/pictures')
     },
     filename: (req, file, callback) => {
-        const name = file.originalname.split(' ').join(' ');
-        const extension = MIME_TYPE_PICTURE[file.mimeType];
-        callback(null, name + '-' + req.params.id + '.' + extension)
+        console.log(file)
+        const extension = MIME_TYPE_PICTURE[file.mimetype];
+        callback(null, req.params.id + '.' + extension)
     }
 });
 

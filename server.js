@@ -15,7 +15,6 @@ server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
 
 
-
 //Routes
 const UserRoute = require('./src/routes/user.route');
 const DepartmentRoute = require('./src/routes/department.route');
@@ -26,7 +25,8 @@ const {delCollection} = require("./src/controllers/department.controller");
 server.use('/api/user', UserRoute);
 server.use('/api/file', verifyAuth, FileRoute);
 server.use('/api/department', requireAuth, DepartmentRoute);
-server.use('/api/file/documents', verifyAuth, express.static(path.join(__dirname, 'public/documents')));
+server.use('/api/file/documents', express.static(path.join(__dirname, 'public/documents')));
+server.use('/api/file/pictures', express.static(path.join(__dirname, 'public/pictures')));
 server.get('*', (req, res) => {
     res.send('not found')
 })
@@ -39,7 +39,7 @@ server.listen(
     process.env.PORT,
     (err) => {
         if (!err)
-            console.log(`Hello world app listening on port ${PORT}!`);
+            console.log(`Hello world app listening on port ${process.env.PORT}!`);
         else
             console.log("can't connect to server :",err);
     }

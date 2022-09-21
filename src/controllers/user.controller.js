@@ -46,7 +46,7 @@ module.exports.updateUserPassword = async (req ,res) => {
 
         const salt = await bcrypt.genSalt();
         const password = await bcrypt.hash(req.body.password, salt);
-        const newUser = await user.updateOne(
+        const newUser = await UserModel.updateOne(
             {_id: req.params.id},
             {
                 $set: {
@@ -69,7 +69,7 @@ module.exports.updateUser = async (req ,res) => {
             {_id: req.params.id},
             {
                 $set: {
-                    picture : `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+                    picture : `${req.protocol}://${process.env.HOST}:${process.env.PORT}/api/file/pictures/${req.file.filename}`
                 }
             }
         )

@@ -32,8 +32,8 @@ router.get('/get/:id', requireAuth, getUserInfo);
 
 //Update
 router.put('/update/formation/:id/:department/:formation/:option', requireAuth, updateUserFormation);
-router.put('/update/password/:id', pictureUpload,requireAuth, updateUserPassword);
-router.put('/update/picture/:id', requireAuth, updateUser);
+router.put('/update/password/:id', requireAuth, updateUserPassword);
+router.put('/update/picture/:id', pictureUpload, requireAuth, updateUser);
 
 //Delete
 router.delete('/del/:id', requireAuth, deleteUser);

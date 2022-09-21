@@ -43,15 +43,12 @@ module.exports.login = async (req, res) => {
                 $set: { token: token }
             }
         );
-        console.log("connexion etablie")
         res.status(200).setHeader('Authorization', `Bearer ${token}`).json({
             userId: user._id,
             admin: user.admin,
             token: token
         });
     } catch (err) {
-        console.log("connexion echoué")
-
         res.status(400).json({err : err});
     }
 };
@@ -66,21 +63,22 @@ module.exports.register = async (req, res) => {
     if (emailExist)
         return res.status(400).json('email already exists');
 
-    const {name, email, password, department, formation, option, year} = req.body;
+    const {name, email, password} = req.body;
     try {
         const user = await UserModel.create({
             name,
             email,
             password,
-            department,
-            formation,
-            option,
-            year
+
         });
-        res.status(201).json({use: user._id});
+        res.status(200).setHeader('Authorization', `Bearer ${token}`).json({
+            userId: user._id,
+            admin: user.admin,
+            token: token
+        });
     } catch (err) {
-        const errors = signUpErrors(err);
-        res.status(200).json({errors});
+        // const errors = signUpErrors(err);
+        res.status(200).json({err});
     }
 };
 
