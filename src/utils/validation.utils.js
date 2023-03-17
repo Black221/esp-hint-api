@@ -2,7 +2,23 @@ const Joi = require("joi");
 
 module.exports.registerValidation = data => {
     const schema = Joi.object({
-        name: Joi
+        pseudo: Joi
+            .string()
+            .min(3)
+            .required(),
+        option: Joi
+            .string()
+            .min(3)
+            .required(),
+        department: Joi
+            .string()
+            .min(3)
+            .required(),
+        level: Joi
+            .string()
+            .min(3)
+            .required(),
+        formation: Joi
             .string()
             .min(3)
             .required(),

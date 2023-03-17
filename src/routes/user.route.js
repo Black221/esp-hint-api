@@ -6,7 +6,7 @@ const router = express.Router();
 const {
     register,
     logout,
-    login
+    login, createUser
 } = require("../controllers/auth.controller");
 
 const {
@@ -19,7 +19,7 @@ const {requireAuth} = require("../middlewares/auth.middleware");
 const {pictureUpload} = require("../middlewares/file.middleware");
 
 
-router.post('/register', register);
+router.post('/register', createUser);
 router.post('/login', login);
 router.post('/logout', requireAuth, logout);
 
@@ -27,7 +27,7 @@ router.post('/logout', requireAuth, logout);
 
 //GET Users Information
 
-router.get('/get/all', requireAuth, getAllUsers);
+router.get('/get/all',  getAllUsers);
 router.get('/get/:id', requireAuth, getUserInfo);
 
 //Update

@@ -12,6 +12,10 @@ const FileSchema = new mongoose.Schema(
         size: {
             type: String
         },
+        examType: {
+            type: String,
+            enum: ['CC', 'DS']
+        },
         filepath: {
             type: String,
             required: true,

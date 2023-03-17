@@ -4,39 +4,14 @@ const mongoose = require('mongoose');
 const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
 const {Schema} = require("mongoose");
+const { required } = require('joi');
 
 const userSchema = new mongoose.Schema(
     {
-        name: {
+        pseudo: {
             type: String,
-            required: true,
-            minLength: 2,
-            maxLength: 55,
-            trim: true
-        },
-        picture: {
-            type: String,
-        },
-        studentId: {
-            type: String,
-            minLength: 2,
-            maxLength: 55,
-            trim: true
-        },
-        department: {
-            type: Schema.Types.ObjectId,
-            ref: 'Department'
-        },
-        formation : {
-            type: Schema.Types.ObjectId,
-            ref: 'Formation'
-        },
-        option: {
-            type: Schema.Types.ObjectId,
-            ref: 'Option'
-        },
-        year: {
-            type: Number
+            minlength: 3,
+            max: 12,
         },
         email: {
             type: String,
@@ -51,6 +26,25 @@ const userSchema = new mongoose.Schema(
             required: true,
             max: 1024,
             minlength: 8
+        },
+        picture: {
+            type: String,
+        },
+        level: {
+            type: Number,
+            required: true,
+        },
+        department: {
+            type: String,
+            enum:['DGI','GCBA', 'DGM', 'DG', 'DGE', 'DGC'],
+            required: true,
+        },
+        option: {
+            type: String,
+            required: true,
+        },
+        formation: {
+            type: String
         },
         token: {
             type: String,

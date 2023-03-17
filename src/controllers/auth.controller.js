@@ -1,4 +1,4 @@
-const {UserModel} = require('../models/user.model');
+const { UserModel } = require('../models/user.model');
 
 const {
     // loginValidation,
@@ -6,7 +6,7 @@ const {
 } = require('../utils/validation.utils');
 
 const {
-    signUpErrors,
+    // signUpErrors,
     // signInErrors
 } = require("../utils/error.utils");
 
@@ -30,57 +30,54 @@ module.exports.login = async (req, res) => {
     // if (error)
     //     return res.status(400).json(error.details[0].message);
     try {
-        const user = await UserModel.findOne({ email: req.body.email});
+        const {email , password} = req.body;
+        const user = await UserModel.findOne({email});
+
         if (!user)
-            return res.status(400).json('Login ou mot de passe invalide');
-        const validPass = await bcrypt.compare(req.body.password, user.password);
+            return res.status(400).json("Vous n'êtes pas encore inscrit");
+
+        const validPass = await bcrypt.compare(password, user.password);
         if (!validPass)
-            return res.status(400).json('Login ou mot de passe invalide');
+            return res.status(400).json('Email ou mot de passe invalide');
         const token = createToken(user);
-        await UserModel.findOneAndUpdate(
-            { login: req.body.login },
-            {
-                $set: { token: token }
-            }
-        );
+
         res.status(200).setHeader('Authorization', `Bearer ${token}`).json({
             userId: user._id,
             admin: user.admin,
             token: token
         });
+        
     } catch (err) {
-        res.status(400).json({err : err});
+        res.status(500).json("Une erreur c'est produit");
     }
 };
 
-module.exports.register = async (req, res) => {
+module.exports.createUser = async (req, res) => {
 
-    // const {error} = registerValidation(req.body);
-    // if (error)
-    //     return res.status(400).json(error.details[0].message);
-
-    const emailExist = await UserModel.findOne({ email: req.body.email});
-    if (emailExist)
-        return res.status(400).json('email already exists');
-
-    const {name, email, password} = req.body;
     try {
+        const {pseudo, email, password, department, option, level, formation} = req.body;
+        
+        if (await UserModel.exists({email}))
+            return res.status(200).json({result: null, msg: "Vous êtes déjà inscrit."})
+
         const user = await UserModel.create({
-            name,
+            pseudo,
             email,
             password,
+            department, option, level, formation,
+            admin: false
+        })
 
-        });
-        res.status(200).setHeader('Authorization', `Bearer ${token}`).json({
-            userId: user._id,
-            admin: user.admin,
-            token: token
-        });
+        if (user)
+            return res.status(200).json({result: user.pseudo, msg: "Inscription réussie"});
+        return res.status(400).json({result: "fail", msg: "Une erreur c'est produite veuillez réessayer plutard"});
+
     } catch (err) {
-        // const errors = signUpErrors(err);
-        res.status(200).json({err});
+        console.log(err);
+        return res.status(500).json({result: null, msg: err.message})
     }
-};
+}
+
 
 module.exports.logout = async (req, res) => {
     const token = req.user;

@@ -1,18 +1,34 @@
 const { ObjectId } = require("mongodb");
 const { UserModel } = require("../models/user.model");
 const bcrypt = require("bcrypt");
+const { CourseModel} = require("../models/course.model");
+
+const YEARS = {
+    "DUT1" : 1,
+    "DUT2" : 2,
+    "DIC1" : 1,
+    "DIC2" : 2,
+    "DST1" : 1,
+    "DST2" : 2,
+    "L1" : 1,
+    "L2" : 2,
+    "L3" : 3,
+    "M1" : 1,
+    "M2" : 2,
+}
+
 
 
 module.exports.getUserInfo = async (req, res) => {
-    if (!ObjectId.isValid(req.params.id))
-        return res.status(400).send('ID unknown');
+
     try {
+
         const user = await UserModel
-            .findById({_id: req.params.id})
-            .populate('formation')
-            .populate('option')
-            .select(['-password', '-admin', '-token']);
+            .findById(req.params.id)
+            .select(['-password', '-token']);
+
         return res.status(200).json({user});
+
     } catch (err) {
         return res.status(400).json({error: err});
     }
@@ -20,9 +36,11 @@ module.exports.getUserInfo = async (req, res) => {
 
 module.exports.getAllUsers = async (req, res) => {
     try {
+
         const users = await UserModel
             .find()
             .select('-password')
+
         return res.status(200).json({users});
     } catch (err) {
         return res.status(400).json({error: err});
@@ -69,7 +87,7 @@ module.exports.updateUser = async (req ,res) => {
             {_id: req.params.id},
             {
                 $set: {
-                    picture : `${req.protocol}://${process.env.HOST}:${process.env.PORT}/api/file/pictures/${req.file.filename}`
+                    picture : `api/file/pictures/${req.file.filename}`
                 }
             }
         )
@@ -84,20 +102,9 @@ module.exports.updateUserFormation = async (req, res) => {
     const {
         department,
         formation,
-        option
-    } = req.params;
-
-    if (!ObjectId.isValid(req.params.id))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(department))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(formation))
-        return res.status(400).send('ID unknown');
-
-    if (!ObjectId.isValid(option))
-        return res.status(400).send('ID unknown');
+        option,
+        level
+    } = req.body;
 
     try {
         const user = await UserModel.findByIdAndUpdate(
@@ -107,7 +114,7 @@ module.exports.updateUserFormation = async (req, res) => {
                     department,
                     formation,
                     option,
-                    year : req.body.year
+                    level
                 }
             }
         )

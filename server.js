@@ -17,21 +17,34 @@ server.use(bodyParser.json());
 
 //Routes
 const UserRoute = require('./src/routes/user.route');
-const DepartmentRoute = require('./src/routes/department.route');
+const CourseRoute = require('./src/routes/course.route');
 const FileRoute = require('./src/routes/file.route');
+
 const {requireAuth, verifyAuth} = require("./src/middlewares/auth.middleware");
-const {delCollection} = require("./src/controllers/department.controller");
 
 server.use('/api/user', UserRoute);
+
+server.use('/api/course', requireAuth, CourseRoute);
+
+
 server.use('/api/file', verifyAuth, FileRoute);
-server.use('/api/department', requireAuth, DepartmentRoute);
 server.use('/api/file/documents', express.static(path.join(__dirname, 'public/documents')));
 server.use('/api/file/pictures', express.static(path.join(__dirname, 'public/pictures')));
+
+
 server.get('*', (req, res) => {
     res.send('not found')
 })
-server.delete('/api/collection/del', delCollection);
 
+
+server.delete('/api/collection/del', async (req, res) => {
+    try {
+        await mongoose.connection.db.dropCollection(req.body.collection)
+        return res.status(200).json({message: "Successfully deleted"});
+    }  catch (err) {
+        return res.status(500).json({error: err});
+    }
+});
 
 
 

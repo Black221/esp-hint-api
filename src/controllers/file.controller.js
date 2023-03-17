@@ -1,7 +1,7 @@
 
 const { FileModel } = require('../models/file.model');
 const {ObjectId} = require("mongodb");
-const {MatiereModel, OptionModel} = require("../models/department.model");
+const { CourseModel } = require("../models/course.model");
 
 
 module.exports.getAllFiles  = async (req, res) => {
@@ -29,8 +29,8 @@ module.exports.getOneFile  = async (req, res) => {
 
 module.exports.addOneFile = async (req, res) => {
 
-    if (!ObjectId.isValid(req.params.id_matiere) &&
-        MatiereModel.exists({_id: req.params.id_matiere}))
+    if (!ObjectId.isValid(req.params.id_course) &&
+        CourseModel.exists({_id: req.params.id_course}))
         return res.status(400).send('ID unknown');
     const {date} = req.body;
     try {
@@ -40,13 +40,13 @@ module.exports.addOneFile = async (req, res) => {
             filepath: `${req.protocol}://${process.env.HOST}:${process.env.PORT}/api/file/documents/${req.file.filename}`
         });
 
-        const matiere = await MatiereModel.findOneAndUpdate(
-            {_id: req.params.id_matiere},
+        const course = await CourseModel.findOneAndUpdate(
+            {_id: req.params.id_course},
             { $push : {
                 files : file._id
             }}
         )
-        res.status(200).json({file : file, matiere : matiere});
+        res.status(200).json({file : file, course : course});
     } catch (error) {
         console.log(error)
         res.status(400).json( { error })
